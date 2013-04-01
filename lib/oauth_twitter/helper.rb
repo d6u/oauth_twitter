@@ -48,8 +48,8 @@ module OauthTwitter
         request = Net::HTTP::Post.new(uri.request_uri)
         request.set_form_data(query) if query
       when method.to_s.upcase == "GET"
-        uri.query( URI.encode_www_form(query) ) if query
-        request = Net::HTTP::Get.new(uri.request_url)
+        uri.query = URI.encode_www_form(query) if query
+        request = Net::HTTP::Get.new(uri.request_uri)
       end
       request["Authorization"] = auth_header
       # Response
