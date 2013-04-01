@@ -3,6 +3,7 @@ require "openssl"
 require "base64"
 require "uri"
 require "net/http"
+require "json"
 
 module OauthTwitter
   module Helper
@@ -23,21 +24,22 @@ module OauthTwitter
       return URI.escape(raw.to_s, RESERVED_CHARS)
     end
     
+    HOST = "https://api.twitter.com"
     def send_request(method, path, query, oauth)
-      # make base_str and signing_key
+      # Make base_str and signing_key
       base_str = method.to_s.upcase << "&"
       base_str << Helper.percent_encode(HOST + path) << "&"
       hash = query ? oauth.merge(query) : oauth
       array = hash.sort.map {|key, val| Helper.percent_encode(key) + "=" + Helper.percent_encode(val)}
       base_str << Helper.percent_encode(array.join("&"))
-      # sign
+      # Sign
       signing_key = String.new(Config.consumer_secret) << "&"
       signing_key << self.oauth_token_secret if hash[:oauth_token]
       signature = Helper.sign(base_str, signing_key)
       signed_oauth = oauth.merge(oauth_signature: signature)
-      # header
+      # Header
       auth_header = Helper.auth_header(signed_oauth)
-      # http request
+      # HTTP request
       uri = URI.parse(HOST + path)
       https = Net::HTTP.new(uri.host, uri.port)
       https.use_ssl = true
@@ -50,7 +52,18 @@ module OauthTwitter
         request = Net::HTTP::Get.new(uri.request_url)
       end
       request["Authorization"] = auth_header
-      return https.request(request)
+      # Response
+      response = https.request(request)
+      if response.code == "200"
+        begin
+          return JSON.parse(response.body)
+        rescue JSON::ParserError
+          return Rack::Utils.parse_nested_query(response.body)
+        end
+      else
+        p response.code, response.body
+        raise "HTTP request failed."
+      end
     end
     
     def self.sign(base_str, signing_key)
