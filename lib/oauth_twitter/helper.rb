@@ -54,12 +54,17 @@ module OauthTwitter
       request["Authorization"] = auth_header
       # Response
       response = https.request(request)
-      if response.code == "200"
+      case response.code
+      when "200"
         begin
           return JSON.parse(response.body)
         rescue JSON::ParserError
           return Rack::Utils.parse_nested_query(response.body)
         end
+      when "401"
+        return false
+      when "408"
+        return false
       else
         p response.code, response.body
         raise "HTTP request failed."

@@ -8,8 +8,14 @@ module OauthTwitter
       
       def request_token(oauth_callback=nil)
         oauth = oauth_params(
-          false, {oauth_callback: "http://local.dev:3000/twitter_login_successful"})
+          false, 
+          {oauth_callback: Config.oauth_callback})
         return send_request(:POST, PATH[:request_token], nil, oauth)
+      end
+      
+      def access_token(oauth_verifier)
+        oauth = oauth_params(true)
+        return send_request(:POST, PATH[:access_token], {oauth_verifier: oauth_verifier}, oauth)
       end
       
     end
