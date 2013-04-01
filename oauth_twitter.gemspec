@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.version       = OauthTwitter::VERSION
   spec.authors       = ["Daiwei Lu"]
   spec.email         = ["daiweilu123@gmail.com"]
-  spec.description   = %q{TODO: Write a gem description}
-  spec.summary       = %q{TODO: Write a gem summary}
+  spec.description   = %q{Simple twitter oauth api to add methods to module for rails module.}
+  spec.summary       = %q{Include module to add methods for rails module.}
   spec.homepage      = ""
   spec.license       = "MIT"
 
