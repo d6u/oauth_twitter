@@ -18,12 +18,12 @@ module OauthTwitter
       oauth[:oauth_token] = self.oauth_token if include_oauth_token
       return oauth.merge(addional_oauth_params)
     end
-    
+
     RESERVED_CHARS = /[^a-zA-Z0-9\-\.\_\~]/
     def self.percent_encode(raw)
       return URI.escape(raw.to_s, RESERVED_CHARS)
     end
-    
+
     HOST = "https://api.twitter.com"
     def send_request(method, path, query, oauth)
       # Make base_str and signing_key
@@ -70,16 +70,16 @@ module OauthTwitter
         raise "HTTP request failed."
       end
     end
-    
+
     def self.sign(base_str, signing_key)
       hex_str = OpenSSL::HMAC.hexdigest(
-        OpenSSL::Digest::Digest.new('sha1'), 
-        signing_key, 
+        OpenSSL::Digest::Digest.new('sha1'),
+        signing_key,
         base_str)
       binary_str = Base64.encode64( [hex_str].pack("H*") ).gsub(/\n/, "")
       return Helper.percent_encode( binary_str )
     end
-    
+
     def self.auth_header(signed_oauth)
       params = signed_oauth.map { |key, val| "#{key}=\"#{val}\"" }
       return "OAuth " << params.join(",")
