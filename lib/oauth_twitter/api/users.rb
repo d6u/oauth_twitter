@@ -4,7 +4,7 @@ module OauthTwitter
       PATH = {
         users_lookup: "/1.1/users/lookup.json"
       }
-      
+
       def users_lookup(id_array, include_entities=true)
         oauth = oauth_params(true)
         # slice id_array for multiple request
@@ -23,7 +23,7 @@ module OauthTwitter
         end
         return result
       end
-      
+
     end
   end
 end
