@@ -3,7 +3,7 @@ require "openssl"
 require "base64"
 require "uri"
 require "net/http"
-require "json"
+require "multi_json"
 
 module OauthTwitter
   module Helper
@@ -53,12 +53,16 @@ module OauthTwitter
       end
       request["Authorization"] = auth_header
       # Response
-      response = https.request(request)
+      begin
+        response = https.request(request)
+      rescue SocketError
+        return false
+      end
       case response.code
       when "200"
         begin
-          return JSON.parse(response.body)
-        rescue JSON::ParserError
+          return MultiJson.load(response.body)
+        rescue MultiJson::LoadError
           return Rack::Utils.parse_nested_query(response.body)
         end
       when "401"
