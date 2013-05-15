@@ -52,26 +52,20 @@ module OauthTwitter
         request = Net::HTTP::Get.new(uri.request_uri)
       end
       request["Authorization"] = auth_header
-      # Response
-      begin
-        response = https.request(request)
-      rescue SocketError
-        return false
-      end
+      ##
+      # Might raise SocketError if no internet connection
+      response = https.request(request)
       case response.code
+      ##
+      # HTTP OK, Too Many Request
       when "200"
         begin
-          return MultiJson.load(response.body)
+          return true, MultiJson.load(response.body)
         rescue MultiJson::LoadError
-          return Rack::Utils.parse_nested_query(response.body)
+          return true, Rack::Utils.parse_nested_query(response.body)
         end
-      when "401"
-        return false
-      when "408"
-        return false
       else
-        p response.code, response.body
-        raise "HTTP request failed."
+        return false, MultiJson.load(response.body), response.code
       end
     end
 
