@@ -7,24 +7,44 @@ require "multi_json"
 
 module OauthTwitter
   module Helper
+
+    ##
+    # Generate oauth params
     def oauth_params(include_oauth_token=true, addional_oauth_params={})
       oauth = {
-        oauth_consumer_key: Config.consumer_key,
-        oauth_nonce: SecureRandom.hex(21),
-        oauth_signature_method: "HMAC-SHA1",
-        oauth_timestamp: Time.now.to_i,
-        oauth_version: "1.0"
+        :oauth_consumer_key     => Config.consumer_key,
+        :oauth_nonce            => SecureRandom.hex(21),
+        :oauth_signature_method => "HMAC-SHA1",
+        :oauth_timestamp        => Time.now.to_i,
+        :oauth_version          => "1.0"
       }
-      oauth[:oauth_token] = self.oauth_token if include_oauth_token
+      oauth[:oauth_token] = self.oauth_token if include_oauth_token == true
       return oauth.merge(addional_oauth_params)
     end
 
+    ##
+    # percent_encode disallowed char
     RESERVED_CHARS = /[^a-zA-Z0-9\-\.\_\~]/
+
+    ##
+    # percent_encode strigns
     def self.percent_encode(raw)
       return URI.escape(raw.to_s, RESERVED_CHARS)
     end
 
+    ##
+    # Twitter API root url
     HOST = "https://api.twitter.com"
+
+    ##
+    # Helper method to send request to Twitter API
+    # @param method [Symbol] HTTP method, support :GET or :POST
+    # @param path [String] request url path
+    # @param query [Hash] request parameters
+    # @param oauth [Hash] oauth request header
+    #
+    # @return [Array] 0: indicate successful or not, 1: response content,
+    #   2: error messages if any
     def send_request(method, path, query, oauth)
       # Make base_str and signing_key
       base_str = method.to_s.upcase << "&"
@@ -36,7 +56,7 @@ module OauthTwitter
       signing_key = String.new(Config.consumer_secret) << "&"
       signing_key << self.oauth_token_secret if hash[:oauth_token]
       signature = Helper.sign(base_str, signing_key)
-      signed_oauth = oauth.merge(oauth_signature: signature)
+      signed_oauth = oauth.merge(:oauth_signature => signature)
       # Header
       auth_header = Helper.auth_header(signed_oauth)
       # HTTP request
@@ -56,8 +76,6 @@ module OauthTwitter
       # Might raise SocketError if no internet connection
       response = https.request(request)
       case response.code
-      ##
-      # HTTP OK, Too Many Request
       when "200"
         begin
           return true, MultiJson.load(response.body)
@@ -69,6 +87,8 @@ module OauthTwitter
       end
     end
 
+    ##
+    # Sign oauth params
     def self.sign(base_str, signing_key)
       hex_str = OpenSSL::HMAC.hexdigest(
         OpenSSL::Digest::Digest.new('sha1'),
@@ -82,5 +102,16 @@ module OauthTwitter
       params = signed_oauth.map { |key, val| "#{key}=\"#{val}\"" }
       return "OAuth " << params.join(",")
     end
+
+    ##
+    # Provide helper method for detailed explaination of error messages
+    def explain_error(full_response, options={}, last_response=nil)
+      if options[:explain_error] == true && last_response.class == Array
+        return full_response, last_response[1], last_response[2]
+      else
+        return full_response
+      end
+    end
+
   end
 end
