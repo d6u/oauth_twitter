@@ -103,15 +103,5 @@ module OauthTwitter
       return "OAuth " << params.join(",")
     end
 
-    ##
-    # Provide helper method for detailed explaination of error messages
-    def explain_error(full_response, options={}, last_response=nil)
-      if options[:explain_error] == true && last_response.class == Array
-        return full_response, last_response[1], last_response[2]
-      else
-        return full_response
-      end
-    end
-
   end
 end
