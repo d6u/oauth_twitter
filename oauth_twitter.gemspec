@@ -8,9 +8,9 @@ Gem::Specification.new do |spec|
   spec.version       = OauthTwitter::VERSION
   spec.authors       = ["Daiwei Lu"]
   spec.email         = ["daiweilu123@gmail.com"]
-  spec.description   = %q{Simple twitter oauth api to add methods to module for rails module.}
-  spec.summary       = %q{Include module to add methods for rails module.}
-  spec.homepage      = ""
+  spec.description   = %q{An OAuth library to interact with Twitter API v1.1, by simply calling methods on instances.}
+  spec.summary       = %q{Load data from Twitter API}
+  spec.homepage      = "https://github.com/daiweilu/oauth_twitter"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)
