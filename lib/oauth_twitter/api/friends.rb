@@ -9,7 +9,7 @@ module OauthTwitter
         query = params.clone
         oauth = oauth_params(true)
         response = send_request(:GET, PATH[:friends_ids], query, oauth)
-        return explain_error(response, options, response)
+        return results_with_error_explained(response, options)
       end
 
     end
