@@ -103,5 +103,17 @@ module OauthTwitter
       return "OAuth " << params.join(",")
     end
 
+    def results_with_error_explained(response, options, full_response=nil)
+      if full_response && options[:explain_error] == true
+        return response[0] ? [response[0], full_response] : (response + [full_response])
+      elsif full_response
+        return full_response
+      elsif options[:explain_error] == true
+        return response
+      else
+        return response[0] ? response[1] : false
+      end
+    end
+
   end
 end

@@ -80,20 +80,6 @@ module OauthTwitter
         return results_with_error_explained(response, options, full_response)
       end
 
-      ##
-      #
-      def results_with_error_explained(response, options, full_resposne)
-        if options[:explain_error] == true
-          if response[0]
-            return response[0], full_response
-          else
-            return response + [full_response]
-          end
-        else
-          return full_response
-        end
-      end
-
     end
   end
 end
