@@ -77,7 +77,7 @@ module OauthTwitter
           full_response += response[1]
           query[:max_id] = response[1].last['id'] - 1
         end
-        return explain_error(full_response, options, response)
+        return results_with_error_explained(response, options, full_response)
       end
 
     end
