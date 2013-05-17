@@ -38,24 +38,41 @@ module OauthTwitter
         return results_with_error_explained(response, options, full_response)
       end
 
-      def users_show
-
+      def users_show(params, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_show], query, oauth)
+        return results_with_error_explained(response, options)
       end
 
-      def users_search
-
+      def users_search(params, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_search], query, oauth)
+        return results_with_error_explained(response, options)
       end
 
-      def users_contributees
-
+      def users_contributees(params, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_contributees], query, oauth)
+        return results_with_error_explained(response, options)
       end
 
-      def users_contributors
-
+      def users_contributors(params, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_contributors], query, oauth)
+        return results_with_error_explained(response, options)
       end
 
-      def users_profile_banner
-
+      ##
+      #
+      def users_profile_banner(params={}, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_profile_banner], query, oauth)
+        return results_with_error_explained(response, options)
       end
 
     end
