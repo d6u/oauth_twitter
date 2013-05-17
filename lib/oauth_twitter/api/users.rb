@@ -2,26 +2,77 @@ module OauthTwitter
   module API
     module Users
       PATH = {
-        users_lookup: "/1.1/users/lookup.json"
+        :users_lookup         => '/1.1/users/lookup.json',
+        :users_show           => '/1.1/users/show.json',
+        :users_search         => '/1.1/users/search.json',
+        :users_contributees   => '/1.1/users/contributees.json',
+        :users_contributors   => '/1.1/users/contributors.json',
+        :users_profile_banner => '/1.1/users/profile_banner.json'
       }
 
-      def users_lookup(id_array, include_entities=true)
-        oauth = oauth_params(true)
+      ##
+      # @param params [Hash] :screen_name => Array, :user_id => Array,
+      #   :include_entities => Boolean
+      def users_lookup(params, options={})
+        query = params.clone
+        users_array = query[:screen_name] || query[:user_id]
+        users_array_type = (query[:screen_name]) ? :screen_name : :user_id
         # slice id_array for multiple request
-        num_of_set = id_array.size / 100
-        num_of_set += 1 if id_array.size % 100 > 0
-        id_sets = num_of_set.times.map {|i| id_array.slice(i*100, (i+1)*100)}
+        num_of_set = users_array.size / 100
+        num_of_set += 1 if users_array.size % 100 > 0
+        id_sets = num_of_set.times.map {|i| users_array.slice(i*100, (i+1)*100)}
         # send request
-        result = []
+        full_response = []
+        response = nil
         id_sets.each do |set|
-          query = {
-            user_id: set.join(','),
-            include_entities: include_entities
-          }
+          oauth = oauth_params(true)
+          query[users_array_type] = set.join(',')
           method = set.size <= 10 ? :GET : :POST
-          result += send_request(method, PATH[:users_lookup], query, oauth)
+          response = send_request(method, PATH[:users_lookup], query, oauth)
+          if response[0]
+            full_response += response[1]
+          else
+            break
+          end
         end
-        return result
+        return results_with_error_explained(response, options, full_response)
+      end
+
+      def users_show(params, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_show], query, oauth)
+        return results_with_error_explained(response, options)
+      end
+
+      def users_search(params, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_search], query, oauth)
+        return results_with_error_explained(response, options)
+      end
+
+      def users_contributees(params, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_contributees], query, oauth)
+        return results_with_error_explained(response, options)
+      end
+
+      def users_contributors(params, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_contributors], query, oauth)
+        return results_with_error_explained(response, options)
+      end
+
+      ##
+      #
+      def users_profile_banner(params={}, options={})
+        query = params.clone
+        oauth = oauth_params(true)
+        response = send_request(:GET, PATH[:users_profile_banner], query, oauth)
+        return results_with_error_explained(response, options)
       end
 
     end

@@ -7,7 +7,7 @@ module OauthTwitter
         :followers_ids               => '/1.1/followers/ids.json',
         :friendships_lookup          => '/1.1/friendships/lookup.json',
         :friendships_incoming        => '/1.1/friendships/incoming.json',
-        :friendships_outgoing        => '/1.1/friendships/outgoing.format',
+        :friendships_outgoing        => '/1.1/friendships/outgoing.json',
         :friendships_create          => '/1.1/friendships/create.json',
         :friendships_destroy         => '/1.1/friendships/destroy.json',
         :friendships_update          => '/1.1/friendships/update.json',
