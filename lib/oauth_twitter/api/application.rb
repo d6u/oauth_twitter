@@ -6,10 +6,7 @@ module OauthTwitter
       }
 
       def rate_limit_status(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:rate_limit_status], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:rate_limit_status], params, true, options)
       end
 
     end

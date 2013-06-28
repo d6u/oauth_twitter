@@ -7,10 +7,66 @@ require "multi_json"
 
 module OauthTwitter
   module Helper
+    ##
+    # Twitter API root url
+    HOST = "https://api.twitter.com"
+
+    ##
+    # Package data and send oauth request
+    #
+    # oauth = true : true - include oauth token
+    #                false - do not include oauth token
+    #                [false, {hash}] - include additional params
+    #
+    # options = {} : :detailed => fasle - return false if request failed,
+    #                    otherwise return just data
+    # --------------------------------------------------
+    def send_request(method, path, query, oauth=true, options={})
+      # generate signing key
+      signing_key_array = [ Config.consumer_secret ]
+
+      # generate oauth params
+      if !!oauth === oauth # boolean
+        oauth_params = generate_oauth_params(oauth)
+        signing_key_array.push((oauth ? self.oauth_token_secret : '' ))
+      else
+        oauth_params = generate_oauth_params(oauth[0], oauth[1])
+        signing_key_array.push((oauth[0] ? self.oauth_token_secret : '' ))
+      end
+
+      # generate base string
+      base_array = [ method.to_s.upcase, URI.encode_www_form_component(HOST + path), URI.encode_www_form_component(URI.encode_www_form((query ? oauth_params.merge(query) : oauth_params).sort)) ]
+
+      # generate signature
+      oauth_params[:oauth_signature] = sign(base_array, signing_key_array)
+
+      # generate HTTP request
+      uri = URI.parse(HOST + path)
+      https = Net::HTTP.new(uri.host, uri.port)
+      https.use_ssl = true
+      if method.to_s.upcase === 'GET'
+        uri.query = URI.encode_www_form(query) if query
+        request = Net::HTTP::Get.new(uri.request_uri)
+      elsif method.to_s.upcase === 'POST'
+        request = Net::HTTP::Post.new(uri.request_uri)
+        request.set_form_data(query) if query
+      end
+      request["Authorization"] = generate_oauth_header(oauth_params)
+
+      # retrive response
+      return parse_response(https.request(request), options)
+    end
+
+
+    # Protected
+    # ==================================================
+    protected
 
     ##
     # Generate oauth params
-    def oauth_params(include_oauth_token=true, addional_oauth_params={})
+    #
+    # --------------------------------------------------
+    def generate_oauth_params(include_oauth_token=true, addional_oauth_params={})
       oauth = {
         :oauth_consumer_key     => Config.consumer_key,
         :oauth_nonce            => SecureRandom.hex(21),
@@ -18,101 +74,71 @@ module OauthTwitter
         :oauth_timestamp        => Time.now.to_i,
         :oauth_version          => "1.0"
       }
-      oauth[:oauth_token] = self.oauth_token if include_oauth_token == true
+      oauth[:oauth_token] = self.oauth_token if include_oauth_token === true
       return oauth.merge(addional_oauth_params)
     end
 
     ##
-    # percent_encode disallowed char
-    RESERVED_CHARS = /[^a-zA-Z0-9\-\.\_\~]/
-
-    ##
-    # percent_encode strigns
-    def self.percent_encode(raw)
-      return URI.escape(raw.to_s, RESERVED_CHARS)
-    end
-
-    ##
-    # Twitter API root url
-    HOST = "https://api.twitter.com"
-
-    ##
-    # Helper method to send request to Twitter API
-    # @param method [Symbol] HTTP method, support :GET or :POST
-    # @param path [String] request url path
-    # @param query [Hash] request parameters
-    # @param oauth [Hash] oauth request header
-    #
-    # @return [Array] 0: indicate successful or not, 1: response content,
-    #   2: error messages if any
-    def send_request(method, path, query, oauth)
-      # Make base_str and signing_key
-      base_str = method.to_s.upcase << "&"
-      base_str << Helper.percent_encode(HOST + path) << "&"
-      hash = query ? oauth.merge(query) : oauth
-      array = hash.sort.map {|key, val| Helper.percent_encode(key) + "=" + Helper.percent_encode(val)}
-      base_str << Helper.percent_encode(array.join("&"))
-      # Sign
-      signing_key = String.new(Config.consumer_secret) << "&"
-      signing_key << self.oauth_token_secret if hash[:oauth_token]
-      signature = Helper.sign(base_str, signing_key)
-      signed_oauth = oauth.merge(:oauth_signature => signature)
-      # Header
-      auth_header = Helper.auth_header(signed_oauth)
-      # HTTP request
-      uri = URI.parse(HOST + path)
-      https = Net::HTTP.new(uri.host, uri.port)
-      https.use_ssl = true
-      case
-      when method.to_s.upcase == "POST"
-        request = Net::HTTP::Post.new(uri.request_uri)
-        request.set_form_data(query) if query
-      when method.to_s.upcase == "GET"
-        uri.query = URI.encode_www_form(query) if query
-        request = Net::HTTP::Get.new(uri.request_uri)
-      end
-      request["Authorization"] = auth_header
-      ##
-      # Might raise SocketError if no internet connection
-      response = https.request(request)
-      case response.code
-      when "200"
-        begin
-          return true, MultiJson.load(response.body)
-        rescue MultiJson::LoadError
-          return true, Rack::Utils.parse_nested_query(response.body)
-        end
-      else
-        return false, MultiJson.load(response.body), response.code
-      end
-    end
-
-    ##
     # Sign oauth params
-    def self.sign(base_str, signing_key)
-      hex_str = OpenSSL::HMAC.hexdigest(
-        OpenSSL::Digest::Digest.new('sha1'),
-        signing_key,
-        base_str)
+    #
+    # --------------------------------------------------
+    def sign(base_array, signing_key_array)
+      hex_str = OpenSSL::HMAC.hexdigest( OpenSSL::Digest::Digest.new('sha1'), signing_key_array.join('&'), base_array.join('&') )
       binary_str = Base64.encode64( [hex_str].pack("H*") ).gsub(/\n/, "")
-      return Helper.percent_encode( binary_str )
+      return URI.encode_www_form_component(binary_str)
     end
 
-    def self.auth_header(signed_oauth)
-      params = signed_oauth.map { |key, val| "#{key}=\"#{val}\"" }
-      return "OAuth " << params.join(",")
+    ##
+    # Generate header message for HTTP request
+    #
+    # --------------------------------------------------
+    def generate_oauth_header(signed_oauth)
+      return "OAuth " << signed_oauth.map {|key, val| "#{key}=\"#{val}\""}.join(",")
     end
 
-    def results_with_error_explained(response, options, full_response=nil)
-      if full_response && options[:explain_error] == true
-        return response[0] ? [response[0], full_response] : (response + [full_response])
-      elsif full_response
-        return full_response
-      elsif options[:explain_error] == true
-        return response
-      else
-        return response[0] ? response[1] : false
+    ##
+    # Parse response for cleaner outputs
+    #
+    # --------------------------------------------------
+    def parse_response(response, options={})
+      result = {}
+      begin
+        result[:data] = MultiJson.load(response.body)
+      rescue MultiJson::LoadError
+        begin
+          result[:data] = Hash[URI.decode_www_form(response.body)]
+        rescue ArgumentError
+          result[:data] = response.body
+        end
       end
+
+      if options[:detailed] === false
+        return result[:data] if response.code === '200'
+        return nil
+      else
+        result[:valid] = response.code === '200' ? true : false
+        result[:code] = response.code.to_i
+        return result
+      end
+    end
+
+    ##
+    # Asseble multi page response
+    #
+    # --------------------------------------------------
+    def assemble_multi_page_response(full_response, last_response, options={})
+      if options[:detailed] === false
+        result = last_response[:valid] ? full_response : last_response[:data]
+      else
+        result = {
+          :valid => last_response[:valid],
+          :code  => last_response[:code],
+          :data  => full_response
+        }
+        result[:message] = last_response[:data] unless last_response[:valid]
+      end
+
+      return result
     end
 
   end

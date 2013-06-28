@@ -17,87 +17,51 @@ module OauthTwitter
       }
 
       def friendships_no_retweets_ids(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:friendships_no_retweets_ids], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friendships_no_retweets_ids], params, true, options)
       end
 
       def friends_ids(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:friends_ids], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friends_ids], params, true, options)
       end
 
       def followers_ids(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:followers_ids], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:followers_ids], params, true, options)
       end
 
       def friendships_lookup(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:friendships_lookup], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friendships_lookup], params, true, options)
       end
 
       def friendships_incoming(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:friendships_incoming], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friendships_incoming], params, true, options)
       end
 
       def friendships_outgoing(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:friendships_outgoing], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friendships_outgoing], params, true, options)
       end
 
       def friendships_create(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:POST, PATH[:friendships_create], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friendships_create], params, true, options)
       end
 
       def friendships_destroy(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:POST, PATH[:friendships_destroy], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friendships_destroy], params, true, options)
       end
 
       def friendships_update(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:POST, PATH[:friendships_update], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friendships_update], params, true, options)
       end
 
       def friendships_show(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:friendships_show], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friendships_show], params, true, options)
       end
 
       def friends_list(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:friends_list], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:friends_list], params, true, options)
       end
 
       def followers_list(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:followers_list], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:followers_list], params, true, options)
       end
 
     end

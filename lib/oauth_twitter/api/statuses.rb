@@ -43,13 +43,9 @@ module OauthTwitter
       #   if count = 5, pages = 3, then it will return 5 * 3 = 15 tweets
       #   from the user's timeline. Cursor stops if response no more reponse.
       #
-      #   :explain_error => [Bool] if true, will return a HTTP Code indicate
-      #   the error
+      #   :detailed => [Bool] if false, will return just the data
       #
       # @return [Array] hash structured the same as Twitter's JSON response.
-      #
-      #   if :explain_error => true, will return array like:
-      #   [json, response.body, response.code]
       def home_timeline(params={}, options={})
         query = params.clone
         return send_status_request(:home_timeline, query, options)
@@ -70,14 +66,13 @@ module OauthTwitter
         response = nil
         options[:pages] ||= 1
         options[:pages].times do |page_num|
-          oauth = oauth_params(true)
-          response = send_request(:GET, PATH[api_symbol], query, oauth)
-          break unless response[0]
-          break if response[1].empty?
-          full_response += response[1]
-          query[:max_id] = response[1].last['id'] - 1
+          response = send_request(:GET, PATH[api_symbol], query, true, options)
+          break unless response[:valid]
+          break if response[:data].empty?
+          full_response += response[:data]
+          query[:max_id] = response[:data].last['id'] - 1
         end
-        return results_with_error_explained(response, options, full_response)
+        return assemble_multi_page_response(full_response, response, options)
       end
 
     end
