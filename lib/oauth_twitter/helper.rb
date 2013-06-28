@@ -122,5 +122,24 @@ module OauthTwitter
       end
     end
 
+    ##
+    # Asseble multi page response
+    #
+    # --------------------------------------------------
+    def assemble_multi_page_response(full_response, last_response, options={})
+      if options[:detailed] === false
+        result = last_response[:valid] ? full_response : last_response[:data]
+      else
+        result = {
+          :valid => last_response[:valid],
+          :code  => last_response[:code],
+          :data  => full_response
+        }
+        result[:message] = last_response[:data] unless last_response[:valid]
+      end
+
+      return result
+    end
+
   end
 end
