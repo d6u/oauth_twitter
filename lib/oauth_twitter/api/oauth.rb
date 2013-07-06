@@ -22,7 +22,7 @@ module OauthTwitter
 
       def oauth_request_token(params={}, options={})
         callback_url = params[:oauth_callback] || Config.oauth_callback
-        return send_request(:POST, PATH[:oauth_request_token], nil, [false, {:oauth_callback => callback_url}], options)
+        return send_request(:POST, PATH[:oauth_request_token], {}, [false, {:oauth_callback => callback_url}], options)
       end
 
     end
