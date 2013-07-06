@@ -21,7 +21,7 @@ module OauthTwitter
     # options = {} : :detailed => fasle - return false if request failed,
     #                    otherwise return just data
     # --------------------------------------------------
-    def send_request(method, path, query, oauth=true, options={})
+    def send_request(method, path, original_query, oauth=true, options={})
       # generate signing key
       signing_key_array = [ Config.consumer_secret ]
 
@@ -33,6 +33,9 @@ module OauthTwitter
         oauth_params = generate_oauth_params(oauth[0], oauth[1])
         signing_key_array.push((oauth[0] ? self.oauth_token_secret : '' ))
       end
+
+      # filter out value == nil
+      query = original_query.select {|key, value| !value.nil?}
 
       # generate base string
       base_array = [ method.to_s.upcase, URI.encode_www_form_component(HOST + path), URI.encode_www_form_component(URI.encode_www_form((query ? oauth_params.merge(query) : oauth_params).sort)) ]
