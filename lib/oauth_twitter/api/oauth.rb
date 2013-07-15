@@ -9,31 +9,20 @@ module OauthTwitter
       }
 
       def oauth_authenticate(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:oauth_authenticate], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:oauth_authenticate], params, true, options)
       end
 
       def oauth_authorize(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:GET, PATH[:oauth_authorize], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:GET, PATH[:oauth_authorize], params, true, options)
       end
 
       def oauth_access_token(params={}, options={})
-        query = params.clone
-        oauth = oauth_params(true)
-        response = send_request(:POST, PATH[:oauth_access_token], query, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:POST, PATH[:oauth_access_token], params, true, options)
       end
 
       def oauth_request_token(params={}, options={})
         callback_url = params[:oauth_callback] || Config.oauth_callback
-        oauth = oauth_params(false, {oauth_callback: callback_url})
-        response = send_request(:POST, PATH[:oauth_request_token], nil, oauth)
-        return results_with_error_explained(response, options)
+        return send_request(:POST, PATH[:oauth_request_token], {}, [false, {:oauth_callback => callback_url}], options)
       end
 
     end
